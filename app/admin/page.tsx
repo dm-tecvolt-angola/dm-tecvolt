@@ -24,7 +24,7 @@ export default function AdminPage() {
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState("");
   const [pesquisa, setPesquisa] = useState("");
-const [filtroEstado, setFiltroEstado] = useState("Todos");
+  const [filtroEstado, setFiltroEstado] = useState("Todos");
 
   async function terminarSessao() {
     await supabase.auth.signOut();
@@ -95,25 +95,33 @@ const [filtroEstado, setFiltroEstado] = useState("Todos");
       timeStyle: "short",
     });
   }
+
+  // Normaliza o estado para evitar problemas
+  // com maiúsculas, minúsculas ou espaços.
+  function normalizarEstado(estado: string | null) {
+    return (estado || "Pendente").trim().toLowerCase();
+  }
+
   const clientesFiltrados = clientes.filter((cliente) => {
-  const textoPesquisa = pesquisa.toLowerCase().trim();
+    const textoPesquisa = pesquisa.toLowerCase().trim();
 
-  const correspondePesquisa =
-    cliente.nome.toLowerCase().includes(textoPesquisa) ||
-    cliente.telefone.toLowerCase().includes(textoPesquisa) ||
-    cliente.servico.toLowerCase().includes(textoPesquisa) ||
-    cliente.municipio.toLowerCase().includes(textoPesquisa);
+    const correspondePesquisa =
+      cliente.nome.toLowerCase().includes(textoPesquisa) ||
+      cliente.telefone.toLowerCase().includes(textoPesquisa) ||
+      cliente.servico.toLowerCase().includes(textoPesquisa) ||
+      cliente.municipio.toLowerCase().includes(textoPesquisa);
 
-  const correspondeEstado =
-    filtroEstado === "Todos" ||
-    (cliente.estado || "Pendente") === filtroEstado;
+    const correspondeEstado =
+      filtroEstado === "Todos" ||
+      normalizarEstado(cliente.estado) ===
+        normalizarEstado(filtroEstado);
 
-  return correspondePesquisa && correspondeEstado;
-});
+    return correspondePesquisa && correspondeEstado;
+  });
 
   return (
     <main className="min-h-screen bg-gray-50 text-gray-900">
-      {/* Cabeçalho */}
+      {/* CABEÇALHO */}
       <section className="bg-blue-700 py-12 text-white">
         <div className="mx-auto max-w-7xl px-6">
           <p className="font-semibold text-blue-200">
@@ -125,175 +133,190 @@ const [filtroEstado, setFiltroEstado] = useState("Todos");
           </h1>
 
           <div className="mt-4 flex flex-wrap items-center gap-4">
-  <p className="text-blue-100">
-    Gestão dos pedidos recebidos pela DM-TECVOLT.
-  </p>
+            <p className="text-blue-100">
+              Gestão dos pedidos recebidos pela DM-TECVOLT.
+            </p>
 
-  <button
-    onClick={terminarSessao}
-    className="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-50"
-  >
-    Terminar sessão
-  </button>
-</div>
+            <button
+              onClick={terminarSessao}
+              className="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-50"
+            >
+              Terminar sessão
+            </button>
+          </div>
         </div>
       </section>
 
-      {/* Conteúdo */}
+      {/* CONTEÚDO */}
       <section className="py-10">
         <div className="mx-auto max-w-7xl px-6">
-{/* Estatísticas */}
-<div className="mb-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-  {/* Total */}
-  <div className="rounded-2xl bg-white p-6 shadow-sm">
-    <p className="text-sm font-medium text-gray-500">
-      Total de pedidos
-    </p>
 
-    <p className="mt-2 text-3xl font-bold text-blue-700">
-      {clientes.length}
-    </p>
-  </div>
+          {/* ESTATÍSTICAS */}
+          <div className="mb-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
 
-  {/* Pendentes */}
-  <div className="rounded-2xl bg-white p-6 shadow-sm">
-    <p className="text-sm font-medium text-gray-500">
-      Pendentes
-    </p>
+            {/* TOTAL */}
+            <div className="rounded-2xl bg-white p-6 shadow-sm">
+              <p className="text-sm font-medium text-gray-500">
+                Total de pedidos
+              </p>
 
-    <p className="mt-2 text-3xl font-bold text-yellow-600">
-      {
-        clientes.filter(
-          (cliente) =>
-            (cliente.estado || "Pendente") === "Pendente"
-        ).length
-      }
-    </p>
-  </div>
+              <p className="mt-2 text-3xl font-bold text-blue-700">
+                {clientes.length}
+              </p>
+            </div>
 
-  {/* Em análise */}
-  <div className="rounded-2xl bg-white p-6 shadow-sm">
-    <p className="text-sm font-medium text-gray-500">
-      Em análise
-    </p>
+            {/* PENDENTES */}
+            <div className="rounded-2xl bg-white p-6 shadow-sm">
+              <p className="text-sm font-medium text-gray-500">
+                Pendentes
+              </p>
 
-    <p className="mt-2 text-3xl font-bold text-orange-600">
-      {
-        clientes.filter(
-          (cliente) => cliente.estado === "Em análise"
-        ).length
-      }
-    </p>
-  </div>
+              <p className="mt-2 text-3xl font-bold text-yellow-600">
+                {
+                  clientes.filter(
+                    (cliente) =>
+                      normalizarEstado(cliente.estado) ===
+                      "pendente"
+                  ).length
+                }
+              </p>
+            </div>
 
-  {/* Em execução */}
-  <div className="rounded-2xl bg-white p-6 shadow-sm">
-    <p className="text-sm font-medium text-gray-500">
-      Em execução
-    </p>
+            {/* EM ANÁLISE */}
+            <div className="rounded-2xl bg-white p-6 shadow-sm">
+              <p className="text-sm font-medium text-gray-500">
+                Em análise
+              </p>
 
-    <p className="mt-2 text-3xl font-bold text-purple-600">
-      {
-        clientes.filter(
-          (cliente) => cliente.estado === "Em execução"
-        ).length
-      }
-    </p>
-  </div>
+              <p className="mt-2 text-3xl font-bold text-orange-600">
+                {
+                  clientes.filter(
+                    (cliente) =>
+                      normalizarEstado(cliente.estado) ===
+                      "em análise"
+                  ).length
+                }
+              </p>
+            </div>
 
-  {/* Concluídos */}
-  <div className="rounded-2xl bg-white p-6 shadow-sm">
-    <p className="text-sm font-medium text-gray-500">
-      Concluídos
-    </p>
+            {/* EM EXECUÇÃO */}
+            <div className="rounded-2xl bg-white p-6 shadow-sm">
+              <p className="text-sm font-medium text-gray-500">
+                Em execução
+              </p>
 
-    <p className="mt-2 text-3xl font-bold text-green-600">
-      {
-        clientes.filter(
-          (cliente) => cliente.estado === "Concluído"
-        ).length
-      }
-    </p>
-  </div>
+              <p className="mt-2 text-3xl font-bold text-purple-600">
+                {
+                  clientes.filter(
+                    (cliente) =>
+                      normalizarEstado(cliente.estado) ===
+                      "em execução"
+                  ).length
+                }
+              </p>
+            </div>
 
-  {/* Cancelados */}
-  <div className="rounded-2xl bg-white p-6 shadow-sm">
-    <p className="text-sm font-medium text-gray-500">
-      Cancelados
-    </p>
+            {/* CONCLUÍDOS */}
+            <div className="rounded-2xl bg-white p-6 shadow-sm">
+              <p className="text-sm font-medium text-gray-500">
+                Concluídos
+              </p>
 
-    <p className="mt-2 text-3xl font-bold text-red-600">
-      {
-        clientes.filter(
-          (cliente) => cliente.estado === "Cancelado"
-        ).length
-      }
-    </p>
-  </div>
-</div>
-          {/* Pesquisa e filtros */}
-<div className="mb-6 grid gap-4 rounded-2xl bg-white p-5 shadow-sm md:grid-cols-2">
-  <div>
-    <label
-      htmlFor="pesquisa"
-      className="mb-2 block text-sm font-semibold text-gray-700"
-    >
-      Pesquisar pedido
-    </label>
+              <p className="mt-2 text-3xl font-bold text-green-600">
+                {
+                  clientes.filter(
+                    (cliente) =>
+                      normalizarEstado(cliente.estado) ===
+                      "concluído"
+                  ).length
+                }
+              </p>
+            </div>
 
-    <input
-      id="pesquisa"
-      type="text"
-      value={pesquisa}
-      onChange={(e) => setPesquisa(e.target.value)}
-      placeholder="Nome, telefone, serviço ou município..."
-      className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
-    />
-  </div>
+            {/* CANCELADOS */}
+            <div className="rounded-2xl bg-white p-6 shadow-sm">
+              <p className="text-sm font-medium text-gray-500">
+                Cancelados
+              </p>
 
-  <div>
-    <label
-      htmlFor="filtroEstado"
-      className="mb-2 block text-sm font-semibold text-gray-700"
-    >
-      Filtrar por estado
-    </label>
+              <p className="mt-2 text-3xl font-bold text-red-600">
+                {
+                  clientes.filter(
+                    (cliente) =>
+                      normalizarEstado(cliente.estado) ===
+                      "cancelado"
+                  ).length
+                }
+              </p>
+            </div>
+          </div>
 
-    <select
-      id="filtroEstado"
-      value={filtroEstado}
-      onChange={(e) => setFiltroEstado(e.target.value)}
-      className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
-    >
-      <option value="Todos">Todos</option>
-      <option value="Pendente">Pendente</option>
-      <option value="Em análise">Em análise</option>
-      <option value="Em execução">Em execução</option>
-      <option value="Concluído">Concluído</option>
-      <option value="Cancelado">Cancelado</option>
-    </select>
-  </div>
-</div>
+          {/* PESQUISA E FILTROS */}
+          <div className="mb-6 grid gap-4 rounded-2xl bg-white p-5 shadow-sm md:grid-cols-2">
 
-          {/* Botão atualizar */}
+            <div>
+              <label
+                htmlFor="pesquisa"
+                className="mb-2 block text-sm font-semibold text-gray-700"
+              >
+                Pesquisar pedido
+              </label>
+
+              <input
+                id="pesquisa"
+                type="text"
+                value={pesquisa}
+                onChange={(e) => setPesquisa(e.target.value)}
+                placeholder="Nome, telefone, serviço ou município..."
+                className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="filtroEstado"
+                className="mb-2 block text-sm font-semibold text-gray-700"
+              >
+                Filtrar por estado
+              </label>
+
+              <select
+                id="filtroEstado"
+                value={filtroEstado}
+                onChange={(e) => setFiltroEstado(e.target.value)}
+                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
+              >
+                <option value="Todos">Todos</option>
+                <option value="Pendente">Pendente</option>
+                <option value="Em análise">Em análise</option>
+                <option value="Em execução">Em execução</option>
+                <option value="Concluído">Concluído</option>
+                <option value="Cancelado">Cancelado</option>
+              </select>
+            </div>
+          </div>
+
+          {/* ATUALIZAR */}
           <div className="mb-6 flex justify-end">
             <button
               onClick={carregarPedidos}
               disabled={carregando}
               className="rounded-lg bg-blue-700 px-5 py-3 font-semibold text-white hover:bg-blue-600 disabled:opacity-50"
             >
-              {carregando ? "A carregar..." : "Atualizar pedidos"}
+              {carregando
+                ? "A carregar..."
+                : "Atualizar pedidos"}
             </button>
           </div>
 
-          {/* Erro */}
+          {/* ERRO */}
           {erro && (
             <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-red-700">
               {erro}
             </div>
           )}
 
-          {/* Carregando */}
+          {/* CARREGAMENTO */}
           {carregando ? (
             <div className="rounded-2xl bg-white p-10 text-center shadow-sm">
               <p className="text-gray-500">
@@ -313,153 +336,164 @@ const [filtroEstado, setFiltroEstado] = useState("Todos");
               </p>
             </div>
           ) : (
-            /* Lista de pedidos */
+            /* LISTA DE PEDIDOS */
             <div className="overflow-hidden rounded-2xl bg-white shadow-sm">
               <div className="w-full overflow-x-auto rounded-2xl">
-  <table className="w-full min-w-[1100px]">
-  <thead className="bg-gray-100">
-    <tr>
-      <th className="px-6 py-4 text-left text-sm font-semibold">
-        Cliente
-      </th>
 
-      <th className="px-6 py-4 text-left text-sm font-semibold">
-        Contacto
-      </th>
+                <table className="w-full min-w-[1100px]">
 
-      <th className="px-6 py-4 text-left text-sm font-semibold">
-        Serviço
-      </th>
+                  <thead className="bg-gray-100">
+                    <tr>
+                      <th className="px-6 py-4 text-left text-sm font-semibold">
+                        Cliente
+                      </th>
 
-      <th className="px-6 py-4 text-left text-sm font-semibold">
-        Localização
-      </th>
+                      <th className="px-6 py-4 text-left text-sm font-semibold">
+                        Contacto
+                      </th>
 
-      <th className="px-6 py-4 text-left text-sm font-semibold">
-        Pedido
-      </th>
+                      <th className="px-6 py-4 text-left text-sm font-semibold">
+                        Serviço
+                      </th>
 
-      <th className="px-6 py-4 text-left text-sm font-semibold">
-        Data
-      </th>
+                      <th className="px-6 py-4 text-left text-sm font-semibold">
+                        Localização
+                      </th>
 
-      <th className="px-6 py-4 text-left text-sm font-semibold">
-        Estado
-      </th>
-    </tr>
-  </thead>
+                      <th className="px-6 py-4 text-left text-sm font-semibold">
+                        Pedido
+                      </th>
 
-  <tbody>
-    {clientesFiltrados.map((cliente) => (
-      <tr
-        key={cliente.id}
-        className="border-t border-gray-200 align-top hover:bg-gray-50"
-      >
-        {/* Cliente */}
-        <td className="px-6 py-5">
-          <div className="font-semibold text-gray-900">
-            {cliente.nome}
-          </div>
+                      <th className="px-6 py-4 text-left text-sm font-semibold">
+                        Data
+                      </th>
 
-          {cliente.email && (
-            <div className="mt-1 text-sm text-gray-500">
-              {cliente.email}
-            </div>
-          )}
-        </td>
+                      <th className="px-6 py-4 text-left text-sm font-semibold">
+                        Estado
+                      </th>
+                    </tr>
+                  </thead>
 
-        {/* Contacto */}
-        <td className="px-6 py-5">
-          <div className="font-medium">
-            {cliente.telefone}
-          </div>
+                  <tbody>
+                    {clientesFiltrados.map((cliente) => (
+                      <tr
+                        key={cliente.id}
+                        className="border-t border-gray-200 align-top hover:bg-gray-50"
+                      >
 
-          <div className="mt-3 flex flex-wrap gap-2">
-            <a
-              href={`tel:${cliente.telefone}`}
-              className="rounded-lg bg-blue-100 px-3 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-200"
-            >
-              📞 Ligar
-            </a>
+                        {/* CLIENTE */}
+                        <td className="px-6 py-5">
+                          <div className="font-semibold text-gray-900">
+                            {cliente.nome}
+                          </div>
 
-            <a
-              href={`https://wa.me/${cliente.telefone.replace(
-                /\D/g,
-                ""
-              )}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="rounded-lg bg-green-100 px-3 py-2 text-sm font-semibold text-green-700 hover:bg-green-200"
-            >
-              💬 WhatsApp
-            </a>
-          </div>
-        </td>
+                          {cliente.email && (
+                            <div className="mt-1 text-sm text-gray-500">
+                              {cliente.email}
+                            </div>
+                          )}
+                        </td>
 
-        {/* Serviço */}
-        <td className="px-6 py-5">
-          <span className="rounded-full bg-blue-100 px-3 py-1 text-sm font-semibold text-blue-700">
-            {cliente.servico}
-          </span>
-        </td>
+                        {/* CONTACTO */}
+                        <td className="px-6 py-5">
+                          <div className="font-medium">
+                            {cliente.telefone}
+                          </div>
 
-        {/* Localização */}
-        <td className="px-6 py-5">
-          <div className="font-medium">
-            {cliente.municipio}
-          </div>
+                          <div className="mt-3 flex flex-wrap gap-2">
 
-          <div className="text-sm text-gray-500">
-            {cliente.provincia}
-          </div>
-        </td>
+                            <a
+                              href={`tel:${cliente.telefone}`}
+                              className="rounded-lg bg-blue-100 px-3 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-200"
+                            >
+                              📞 Ligar
+                            </a>
 
-        {/* Pedido */}
-        <td className="max-w-xs px-6 py-5">
-          <p className="whitespace-normal leading-6 text-gray-600">
-            {cliente.descricao}
-          </p>
-        </td>
+                            <a
+                              href={`https://wa.me/${cliente.telefone.replace(
+                                /\D/g,
+                                ""
+                              )}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="rounded-lg bg-green-100 px-3 py-2 text-sm font-semibold text-green-700 hover:bg-green-200"
+                            >
+                              💬 WhatsApp
+                            </a>
 
-        {/* Data */}
-        <td className="whitespace-nowrap px-6 py-5 text-sm text-gray-600">
-          {formatarData(cliente.created_at)}
-        </td>
+                          </div>
+                        </td>
 
-        {/* Estado */}
-        <td className="px-6 py-5">
-          <select
-            value={cliente.estado || "Pendente"}
-            onChange={(e) =>
-              alterarEstado(cliente.id, e.target.value)
-            }
-            className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
-          >
-            <option value="Pendente">
-              Pendente
-            </option>
+                        {/* SERVIÇO */}
+                        <td className="px-6 py-5">
+                          <span className="rounded-full bg-blue-100 px-3 py-1 text-sm font-semibold text-blue-700">
+                            {cliente.servico}
+                          </span>
+                        </td>
 
-            <option value="Em análise">
-              Em análise
-            </option>
+                        {/* LOCALIZAÇÃO */}
+                        <td className="px-6 py-5">
+                          <div className="font-medium">
+                            {cliente.municipio}
+                          </div>
 
-            <option value="Em execução">
-              Em execução
-            </option>
+                          <div className="text-sm text-gray-500">
+                            {cliente.provincia}
+                          </div>
+                        </td>
 
-            <option value="Concluído">
-              Concluído
-            </option>
+                        {/* PEDIDO */}
+                        <td className="max-w-xs px-6 py-5">
+                          <p className="whitespace-normal leading-6 text-gray-600">
+                            {cliente.descricao}
+                          </p>
+                        </td>
 
-            <option value="Cancelado">
-              Cancelado
-            </option>
-          </select>
-        </td>
-      </tr>
-    ))}
-  </tbody>
-</table>
+                        {/* DATA */}
+                        <td className="whitespace-nowrap px-6 py-5 text-sm text-gray-600">
+                          {formatarData(cliente.created_at)}
+                        </td>
+
+                        {/* ESTADO */}
+                        <td className="px-6 py-5">
+                          <select
+                            value={cliente.estado || "Pendente"}
+                            onChange={(e) =>
+                              alterarEstado(
+                                cliente.id,
+                                e.target.value
+                              )
+                            }
+                            className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
+                          >
+                            <option value="Pendente">
+                              Pendente
+                            </option>
+
+                            <option value="Em análise">
+                              Em análise
+                            </option>
+
+                            <option value="Em execução">
+                              Em execução
+                            </option>
+
+                            <option value="Concluído">
+                              Concluído
+                            </option>
+
+                            <option value="Cancelado">
+                              Cancelado
+                            </option>
+                          </select>
+                        </td>
+
+                      </tr>
+                    ))}
+                  </tbody>
+
+                </table>
+
               </div>
             </div>
           )}
