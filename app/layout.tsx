@@ -22,6 +22,9 @@ export const metadata: Metadata = {
   },
   description:
     "DM-TECVOLT, Venda e Serviço (SU), LDA — soluções em instalações elétricas, CCTV, segurança eletrónica, cerca elétrica, videoporteiro e manutenção técnica.",
+  verification: {
+    google: "BR1fgAbaGvYaEviiLwlC2UtMFX3D_W0VL-1ZDe4eNzM",
+  },
 };
 
 export default function RootLayout({
