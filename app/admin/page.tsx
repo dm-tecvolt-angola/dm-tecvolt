@@ -28,10 +28,51 @@ export default function AdminPage() {
 
   async function terminarSessao() {
     await supabase.auth.signOut();
-    router.push("/login");
+    router.replace("/login");
+  }
+
+  async function carregarPedidos() {
+    setCarregando(true);
+    setErro("");
+
+    const {
+      data: { user },
+      error: erroUsuario,
+    } = await supabase.auth.getUser();
+
+    if (erroUsuario || !user) {
+      router.replace("/login");
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from("clientes")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Erro ao carregar pedidos:", error);
+      setErro("Não foi possível carregar os pedidos.");
+      setCarregando(false);
+      return;
+    }
+
+    setClientes(data || []);
+    setCarregando(false);
   }
 
   async function alterarEstado(id: number, novoEstado: string) {
+    setErro("");
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      router.replace("/login");
+      return;
+    }
+
     const { error } = await supabase
       .from("clientes")
       .update({ estado: novoEstado })
@@ -52,54 +93,15 @@ export default function AdminPage() {
     );
   }
 
-  async function carregarPedidos() {
-    setCarregando(true);
-    setErro("");
-
-    const { data, error } = await supabase
-      .from("clientes")
-      .select("*")
-      .order("created_at", { ascending: false });
-
-    if (error) {
-      console.error("Erro ao carregar pedidos:", error);
-      setErro("Não foi possível carregar os pedidos.");
-      setCarregando(false);
-      return;
-    }
-
-    setClientes(data || []);
-    setCarregando(false);
-  }
-
   useEffect(() => {
-    async function verificarUsuario() {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user) {
-        router.push("/login");
-        return;
-      }
-
-      carregarPedidos();
-    }
-
-    verificarUsuario();
-  }, [router]);
+    carregarPedidos();
+  }, []);
 
   function formatarData(data: string) {
     return new Date(data).toLocaleString("pt-PT", {
       dateStyle: "short",
       timeStyle: "short",
     });
-  }
-
-  // Normaliza o estado para evitar problemas
-  // com maiúsculas, minúsculas ou espaços.
-  function normalizarEstado(estado: string | null) {
-    return (estado || "Pendente").trim().toLowerCase();
   }
 
   const clientesFiltrados = clientes.filter((cliente) => {
@@ -113,17 +115,40 @@ export default function AdminPage() {
 
     const correspondeEstado =
       filtroEstado === "Todos" ||
-      normalizarEstado(cliente.estado) ===
-        normalizarEstado(filtroEstado);
+      (cliente.estado || "Pendente") === filtroEstado;
 
     return correspondePesquisa && correspondeEstado;
   });
 
+  const totalPedidos = clientes.length;
+
+  const totalPendentes = clientes.filter(
+    (cliente) => (cliente.estado || "Pendente") === "Pendente"
+  ).length;
+
+  const totalAnalise = clientes.filter(
+    (cliente) => cliente.estado === "Em análise"
+  ).length;
+
+  const totalExecucao = clientes.filter(
+    (cliente) => cliente.estado === "Em execução"
+  ).length;
+
+  const totalConcluidos = clientes.filter(
+    (cliente) => cliente.estado === "Concluído"
+  ).length;
+
+  const totalCancelados = clientes.filter(
+    (cliente) => cliente.estado === "Cancelado"
+  ).length;
+
   return (
     <main className="min-h-screen bg-gray-50 text-gray-900">
+
       {/* CABEÇALHO */}
       <section className="bg-blue-700 py-12 text-white">
         <div className="mx-auto max-w-7xl px-6">
+
           <p className="font-semibold text-blue-200">
             Administração
           </p>
@@ -133,6 +158,7 @@ export default function AdminPage() {
           </h1>
 
           <div className="mt-4 flex flex-wrap items-center gap-4">
+
             <p className="text-blue-100">
               Gestão dos pedidos recebidos pela DM-TECVOLT.
             </p>
@@ -143,6 +169,7 @@ export default function AdminPage() {
             >
               Terminar sessão
             </button>
+
           </div>
         </div>
       </section>
@@ -154,104 +181,69 @@ export default function AdminPage() {
           {/* ESTATÍSTICAS */}
           <div className="mb-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
 
-            {/* TOTAL */}
             <div className="rounded-2xl bg-white p-6 shadow-sm">
               <p className="text-sm font-medium text-gray-500">
                 Total de pedidos
               </p>
 
               <p className="mt-2 text-3xl font-bold text-blue-700">
-                {clientes.length}
+                {totalPedidos}
               </p>
             </div>
 
-            {/* PENDENTES */}
             <div className="rounded-2xl bg-white p-6 shadow-sm">
               <p className="text-sm font-medium text-gray-500">
                 Pendentes
               </p>
 
               <p className="mt-2 text-3xl font-bold text-yellow-600">
-                {
-                  clientes.filter(
-                    (cliente) =>
-                      normalizarEstado(cliente.estado) ===
-                      "pendente"
-                  ).length
-                }
+                {totalPendentes}
               </p>
             </div>
 
-            {/* EM ANÁLISE */}
             <div className="rounded-2xl bg-white p-6 shadow-sm">
               <p className="text-sm font-medium text-gray-500">
                 Em análise
               </p>
 
               <p className="mt-2 text-3xl font-bold text-orange-600">
-                {
-                  clientes.filter(
-                    (cliente) =>
-                      normalizarEstado(cliente.estado) ===
-                      "em análise"
-                  ).length
-                }
+                {totalAnalise}
               </p>
             </div>
 
-            {/* EM EXECUÇÃO */}
             <div className="rounded-2xl bg-white p-6 shadow-sm">
               <p className="text-sm font-medium text-gray-500">
                 Em execução
               </p>
 
               <p className="mt-2 text-3xl font-bold text-purple-600">
-                {
-                  clientes.filter(
-                    (cliente) =>
-                      normalizarEstado(cliente.estado) ===
-                      "em execução"
-                  ).length
-                }
+                {totalExecucao}
               </p>
             </div>
 
-            {/* CONCLUÍDOS */}
             <div className="rounded-2xl bg-white p-6 shadow-sm">
               <p className="text-sm font-medium text-gray-500">
                 Concluídos
               </p>
 
               <p className="mt-2 text-3xl font-bold text-green-600">
-                {
-                  clientes.filter(
-                    (cliente) =>
-                      normalizarEstado(cliente.estado) ===
-                      "concluído"
-                  ).length
-                }
+                {totalConcluidos}
               </p>
             </div>
 
-            {/* CANCELADOS */}
             <div className="rounded-2xl bg-white p-6 shadow-sm">
               <p className="text-sm font-medium text-gray-500">
                 Cancelados
               </p>
 
               <p className="mt-2 text-3xl font-bold text-red-600">
-                {
-                  clientes.filter(
-                    (cliente) =>
-                      normalizarEstado(cliente.estado) ===
-                      "cancelado"
-                  ).length
-                }
+                {totalCancelados}
               </p>
             </div>
+
           </div>
 
-          {/* PESQUISA E FILTROS */}
+          {/* PESQUISA E FILTRO */}
           <div className="mb-6 grid gap-4 rounded-2xl bg-white p-5 shadow-sm md:grid-cols-2">
 
             <div>
@@ -294,19 +286,20 @@ export default function AdminPage() {
                 <option value="Cancelado">Cancelado</option>
               </select>
             </div>
+
           </div>
 
           {/* ATUALIZAR */}
           <div className="mb-6 flex justify-end">
+
             <button
               onClick={carregarPedidos}
               disabled={carregando}
               className="rounded-lg bg-blue-700 px-5 py-3 font-semibold text-white hover:bg-blue-600 disabled:opacity-50"
             >
-              {carregando
-                ? "A carregar..."
-                : "Atualizar pedidos"}
+              {carregando ? "A carregar..." : "Atualizar pedidos"}
             </button>
+
           </div>
 
           {/* ERRO */}
@@ -318,14 +311,20 @@ export default function AdminPage() {
 
           {/* CARREGAMENTO */}
           {carregando ? (
+
             <div className="rounded-2xl bg-white p-10 text-center shadow-sm">
               <p className="text-gray-500">
                 A carregar pedidos...
               </p>
             </div>
+
           ) : clientes.length === 0 ? (
+
             <div className="rounded-2xl bg-white p-10 text-center shadow-sm">
-              <div className="text-5xl">📭</div>
+
+              <div className="text-5xl">
+                📭
+              </div>
 
               <h2 className="mt-4 text-2xl font-bold">
                 Nenhum pedido encontrado
@@ -334,16 +333,40 @@ export default function AdminPage() {
               <p className="mt-2 text-gray-500">
                 Os pedidos enviados pelos clientes aparecerão aqui.
               </p>
+
             </div>
+
+          ) : clientesFiltrados.length === 0 ? (
+
+            <div className="rounded-2xl bg-white p-10 text-center shadow-sm">
+
+              <div className="text-5xl">
+                🔎
+              </div>
+
+              <h2 className="mt-4 text-2xl font-bold">
+                Nenhum resultado
+              </h2>
+
+              <p className="mt-2 text-gray-500">
+                Não encontramos pedidos com os filtros selecionados.
+              </p>
+
+            </div>
+
           ) : (
+
             /* LISTA DE PEDIDOS */
             <div className="overflow-hidden rounded-2xl bg-white shadow-sm">
+
               <div className="w-full overflow-x-auto rounded-2xl">
 
                 <table className="w-full min-w-[1100px]">
 
                   <thead className="bg-gray-100">
+
                     <tr>
+
                       <th className="px-6 py-4 text-left text-sm font-semibold">
                         Cliente
                       </th>
@@ -371,11 +394,15 @@ export default function AdminPage() {
                       <th className="px-6 py-4 text-left text-sm font-semibold">
                         Estado
                       </th>
+
                     </tr>
+
                   </thead>
 
                   <tbody>
+
                     {clientesFiltrados.map((cliente) => (
+
                       <tr
                         key={cliente.id}
                         className="border-t border-gray-200 align-top hover:bg-gray-50"
@@ -383,6 +410,7 @@ export default function AdminPage() {
 
                         {/* CLIENTE */}
                         <td className="px-6 py-5">
+
                           <div className="font-semibold text-gray-900">
                             {cliente.nome}
                           </div>
@@ -392,10 +420,12 @@ export default function AdminPage() {
                               {cliente.email}
                             </div>
                           )}
+
                         </td>
 
                         {/* CONTACTO */}
                         <td className="px-6 py-5">
+
                           <div className="font-medium">
                             {cliente.telefone}
                           </div>
@@ -422,17 +452,21 @@ export default function AdminPage() {
                             </a>
 
                           </div>
+
                         </td>
 
                         {/* SERVIÇO */}
                         <td className="px-6 py-5">
+
                           <span className="rounded-full bg-blue-100 px-3 py-1 text-sm font-semibold text-blue-700">
                             {cliente.servico}
                           </span>
+
                         </td>
 
                         {/* LOCALIZAÇÃO */}
                         <td className="px-6 py-5">
+
                           <div className="font-medium">
                             {cliente.municipio}
                           </div>
@@ -440,22 +474,28 @@ export default function AdminPage() {
                           <div className="text-sm text-gray-500">
                             {cliente.provincia}
                           </div>
+
                         </td>
 
                         {/* PEDIDO */}
                         <td className="max-w-xs px-6 py-5">
+
                           <p className="whitespace-normal leading-6 text-gray-600">
                             {cliente.descricao}
                           </p>
+
                         </td>
 
                         {/* DATA */}
                         <td className="whitespace-nowrap px-6 py-5 text-sm text-gray-600">
+
                           {formatarData(cliente.created_at)}
+
                         </td>
 
                         {/* ESTADO */}
                         <td className="px-6 py-5">
+
                           <select
                             value={cliente.estado || "Pendente"}
                             onChange={(e) =>
@@ -466,6 +506,7 @@ export default function AdminPage() {
                             }
                             className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
                           >
+
                             <option value="Pendente">
                               Pendente
                             </option>
@@ -485,20 +526,28 @@ export default function AdminPage() {
                             <option value="Cancelado">
                               Cancelado
                             </option>
+
                           </select>
+
                         </td>
 
                       </tr>
+
                     ))}
+
                   </tbody>
 
                 </table>
 
               </div>
+
             </div>
+
           )}
+
         </div>
       </section>
+
     </main>
   );
 }
