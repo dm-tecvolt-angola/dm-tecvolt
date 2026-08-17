@@ -1,11 +1,42 @@
+import type { Metadata } from "next";
 import Image from "next/image";
+
+export const metadata: Metadata = {
+  title: "Serviços de Instalações Elétricas e Segurança Eletrónica",
+  description:
+    "Conheça os serviços da DM-TECVOLT em Angola: instalações elétricas, CCTV, videovigilância, cerca elétrica, videoporteiro, segurança eletrónica e manutenção técnica.",
+
+  keywords: [
+    "instalações elétricas Angola",
+    "instalações elétricas Cabinda",
+    "CCTV Angola",
+    "CCTV Cabinda",
+    "videovigilância Angola",
+    "cerca elétrica Angola",
+    "videoporteiro Angola",
+    "segurança eletrónica Angola",
+    "manutenção elétrica Angola",
+    "manutenção técnica Cabinda",
+    "DM-TECVOLT",
+  ],
+
+  openGraph: {
+    title: "Serviços | DM-TECVOLT",
+    description:
+      "Instalações elétricas, CCTV, videovigilância, cerca elétrica, videoporteiro, segurança eletrónica e manutenção técnica em Angola.",
+    url: "https://dm-tecvolt.vercel.app/servicos",
+    siteName: "DM-TECVOLT",
+    type: "website",
+  },
+};
+
 const servicos = [
   {
     numero: "01",
     titulo: "Instalações Elétricas",
     imagem: "/images/servicos/eletrica.jpeg",
     descricao:
-      "Execução e manutenção de instalações elétricas residenciais, comerciais e industriais, com foco em segurança e qualidade.",
+      "Execução e manutenção de instalações elétricas residenciais, comerciais e industriais, com foco em segurança, qualidade e eficiência.",
     itens: [
       "Instalações elétricas",
       "Quadros elétricos",
@@ -18,7 +49,7 @@ const servicos = [
     titulo: "CCTV e Videovigilância",
     imagem: "/images/servicos/cctv.jpeg",
     descricao:
-      "Instalação de sistemas de videovigilância para monitorização e proteção de residências, empresas e estabelecimentos.",
+      "Instalação de sistemas de CCTV e videovigilância para monitorização e proteção de residências, empresas e estabelecimentos.",
     itens: [
       "Câmaras de segurança",
       "DVR e NVR",
@@ -44,7 +75,7 @@ const servicos = [
     titulo: "Videoporteiro",
     imagem: "/images/servicos/videoporteiro.jpeg",
     descricao:
-      "Instalação de sistemas de comunicação e controlo de acesso para maior segurança e comodidade.",
+      "Instalação de sistemas de videoporteiro, comunicação e controlo de acesso para maior segurança e comodidade.",
     itens: [
       "Videoporteiros",
       "Intercomunicadores",
@@ -57,7 +88,7 @@ const servicos = [
     titulo: "Manutenção Técnica",
     imagem: "/images/servicos/manutencao.jpeg",
     descricao:
-      "Diagnóstico, manutenção preventiva e corretiva de instalações e equipamentos técnicos.",
+      "Diagnóstico, manutenção preventiva e corretiva de instalações e equipamentos técnicos, ajudando a manter os sistemas em funcionamento.",
     itens: [
       "Diagnóstico de avarias",
       "Manutenção preventiva",
@@ -79,6 +110,7 @@ const servicos = [
     ],
   },
 ];
+
 export default function ServicosPage() {
   return (
     <main className="min-h-screen bg-white text-gray-900">
@@ -90,13 +122,14 @@ export default function ServicosPage() {
           </p>
 
           <h1 className="mt-3 max-w-4xl text-4xl font-bold md:text-5xl">
-            Soluções profissionais para energia, segurança e tecnologia
+            Instalações elétricas e soluções de segurança em Angola
           </h1>
 
           <p className="mt-6 max-w-3xl text-lg leading-8 text-blue-100">
-            Na DM-TECVOLT desenvolvemos soluções técnicas adaptadas às
-            necessidades de cada cliente, desde instalações elétricas até
-            sistemas modernos de segurança eletrónica.
+            A DM-TECVOLT desenvolve soluções técnicas adaptadas às
+            necessidades de cada cliente, desde instalações elétricas
+            residenciais, comerciais e industriais até sistemas modernos de
+            segurança eletrónica e videovigilância.
           </p>
         </div>
       </section>
@@ -110,17 +143,16 @@ export default function ServicosPage() {
                 key={servico.numero}
                 className="group rounded-2xl border border-gray-200 bg-white p-8 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl"
               >
-                <div className="flex items-start justify-between">
-                  <div className="relative h-56 w-full overflow-hidden rounded-xl">
-  <Image
-    src={servico.imagem}
-    alt={servico.titulo}
-    fill
-    className="object-cover transition duration-500 group-hover:scale-105"
-  />
-</div>
+                <div className="relative h-56 w-full overflow-hidden rounded-xl">
+                  <Image
+                    src={servico.imagem}
+                    alt={`${servico.titulo} - DM-TECVOLT`}
+                    fill
+                    sizes="(max-width: 768px) 100vw, 50vw"
+                    className="object-cover transition duration-500 group-hover:scale-105"
+                  />
 
-                  <span className="text-4xl font-bold text-gray-100 transition group-hover:text-blue-100">
+                  <span className="absolute right-4 top-4 text-4xl font-bold text-white drop-shadow-lg">
                     {servico.numero}
                   </span>
                 </div>
@@ -171,17 +203,17 @@ export default function ServicosPage() {
               {
                 numero: "01",
                 titulo: "Pedido",
-                texto: "O cliente apresenta a sua necessidade.",
+                texto: "O cliente apresenta a sua necessidade através do nosso formulário de serviço.",
               },
               {
                 numero: "02",
                 titulo: "Avaliação",
-                texto: "Analisamos o projeto e identificamos a melhor solução.",
+                texto: "Analisamos o projeto e identificamos a solução técnica mais adequada.",
               },
               {
                 numero: "03",
                 titulo: "Execução",
-                texto: "A nossa equipa realiza o trabalho com responsabilidade.",
+                texto: "A nossa equipa realiza o trabalho com responsabilidade e atenção à segurança.",
               },
               {
                 numero: "04",
@@ -219,7 +251,7 @@ export default function ServicosPage() {
 
           <p className="mx-auto mt-4 max-w-2xl text-gray-300">
             Envie o seu pedido e explique-nos o que precisa. A DM-TECVOLT
-            analisará a sua necessidade.
+            analisará a sua necessidade e poderá entrar em contacto consigo.
           </p>
 
           <a
