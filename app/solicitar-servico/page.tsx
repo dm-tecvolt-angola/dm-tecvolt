@@ -3,10 +3,247 @@
 import { FormEvent, useState } from "react";
 import { supabase } from "@/lib/supabase";
 
+const provinciasMunicipios: Record<string, string[]> = {
+  "Bengo": [
+    "Dembos",
+    "Nambuangongo",
+    "Pango Aluquém",
+    "Ambriz",
+    "Dande",
+    "Bula Atumba",
+    "Quibaxe",
+  ],
+
+  "Benguela": [
+    "Benguela",
+    "Lobito",
+    "Baía Farta",
+    "Catumbela",
+    "Chongoroi",
+    "Cubal",
+    "Ganda",
+    "Balombo",
+    "Bocoio",
+    "Caimbambo",
+  ],
+
+  "Bié": [
+    "Cuito",
+    "Andulo",
+    "Camacupa",
+    "Catabola",
+    "Chitembo",
+    "Cuemba",
+    "Cunhinga",
+    "Nharea",
+  ],
+
+  "Cabinda": [
+    "Cabinda",
+    "Cacongo",
+    "Buco-Zau",
+    "Belize",
+  ],
+
+  "Cuando Cubango": [
+    "Menongue",
+    "Cuchi",
+    "Cuito Cuanavale",
+    "Dirico",
+    "Mavinga",
+    "Nancova",
+    "Rivungo",
+  ],
+
+  "Cuanza Norte": [
+    "Cazengo",
+    "Ambaca",
+    "Banga",
+    "Bolongongo",
+    "Cambambe",
+    "Golungo Alto",
+    "Lucala",
+    "Quiculungo",
+    "Samba Cajú",
+  ],
+
+  "Cuanza Sul": [
+    "Sumbe",
+    "Amboim",
+    "Cassongue",
+    "Conda",
+    "Ebo",
+    "Libolo",
+    "Mussende",
+    "Porto Amboim",
+    "Quibala",
+    "Quilenda",
+    "Seles",
+  ],
+
+  "Cunene": [
+    "Ondjiva",
+    "Cahama",
+    "Curoca",
+    "Cuvelai",
+    "Namacunde",
+    "Ombadja",
+  ],
+
+  "Huambo": [
+    "Huambo",
+    "Bailundo",
+    "Caála",
+    "Catchiungo",
+    "Ecunha",
+    "Longonjo",
+    "Londuimbali",
+    "Mungo",
+    "Tchicala-Tcholoanga",
+    "Ucuma",
+  ],
+
+  "Huíla": [
+    "Lubango",
+    "Caconda",
+    "Caluquembe",
+    "Chibia",
+    "Chicomba",
+    "Chipindo",
+    "Cuvango",
+    "Humpata",
+    "Jamba",
+    "Matala",
+    "Quilengues",
+    "Quipungo",
+  ],
+
+  "Icolo e Bengo": [
+    "Catete",
+    "Quiçama",
+    "Mussulo",
+  ],
+
+  "Luanda": [
+    "Luanda",
+    "Belas",
+    "Cacuaco",
+    "Cazenga",
+    "Kilamba Kiaxi",
+    "Talatona",
+    "Viana",
+  ],
+
+  "Lunda Norte": [
+    "Dundo",
+    "Cambulo",
+    "Capenda Camulemba",
+    "Caungula",
+    "Chitato",
+    "Cuango",
+    "Cuílo",
+    "Lubalo",
+    "Lucapa",
+    "Xá-Muteba",
+  ],
+
+  "Lunda Sul": [
+    "Saurimo",
+    "Cacolo",
+    "Dala",
+    "Muconda",
+    "Quirima",
+  ],
+
+  "Malanje": [
+    "Malanje",
+    "Cacuso",
+    "Calandula",
+    "Cambundi-Catembo",
+    "Cangandala",
+    "Caombo",
+    "Kiwaba Nzoji",
+    "Luquembo",
+    "Massango",
+    "Mucari",
+    "Quela",
+    "Quirima",
+  ],
+
+  "Moxico": [
+    "Luena",
+    "Alto Cuito",
+    "Bundas",
+    "Camanongue",
+    "Cameia",
+    "Léua",
+    "Luau",
+    "Luacano",
+    "Luchazes",
+  ],
+
+  "Moxico Leste": [
+    "Cazombo",
+    "Macondo",
+    "Luacano",
+    "Lago",
+  ],
+
+  "Namibe": [
+    "Moçâmedes",
+    "Bibala",
+    "Camucuio",
+    "Tômbwa",
+    "Virei",
+  ],
+
+  "Uíge": [
+    "Uíge",
+    "Alto Cauale",
+    "Ambuila",
+    "Bembe",
+    "Buengas",
+    "Damba",
+    "Maquela do Zombo",
+    "Mucaba",
+    "Negage",
+    "Puri",
+    "Quimbele",
+    "Quitexe",
+    "Songo",
+  ],
+
+  "Zaire": [
+    "Mbanza Kongo",
+    "Cuimba",
+    "Nóqui",
+    "Nzeto",
+    "Soyo",
+    "Tomboco",
+  ],
+};
+
+const servicos = [
+  "CCTV e Videovigilância",
+  "Instalações Elétricas",
+  "Cerca Elétrica",
+  "Videoporteiro",
+  "Manutenção Técnica",
+  "Segurança Eletrónica",
+];
+
 export default function SolicitarServicoPage() {
   const [enviando, setEnviando] = useState(false);
   const [enviado, setEnviado] = useState(false);
   const [erro, setErro] = useState("");
+
+  const [provinciaSelecionada, setProvinciaSelecionada] = useState("");
+  const [municipioSelecionado, setMunicipioSelecionado] = useState("");
+
+  const municipios =
+    provinciaSelecionada !== ""
+      ? provinciasMunicipios[provinciaSelecionada] || []
+      : [];
 
   async function enviarPedido(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -17,12 +254,12 @@ export default function SolicitarServicoPage() {
     const form = event.currentTarget;
     const dados = new FormData(form);
 
-    const nome = String(dados.get("nome") || "");
-    const telefone = String(dados.get("telefone") || "");
-    const provincia = String(dados.get("provincia") || "");
-    const municipio = String(dados.get("municipio") || "");
-    const servico = String(dados.get("servico") || "");
-    const descricao = String(dados.get("descricao") || "");
+    const nome = String(dados.get("nome") || "").trim();
+    const telefone = String(dados.get("telefone") || "").trim();
+    const provincia = String(dados.get("provincia") || "").trim();
+    const municipio = String(dados.get("municipio") || "").trim();
+    const servico = String(dados.get("servico") || "").trim();
+    const descricao = String(dados.get("descricao") || "").trim();
 
     const { error } = await supabase.from("clientes").insert({
       nome,
@@ -36,12 +273,14 @@ export default function SolicitarServicoPage() {
 
     if (error) {
       console.error(
-  "Erro ao enviar pedido:",
-  JSON.stringify(error, null, 2)
-);
+        "Erro ao enviar pedido:",
+        JSON.stringify(error, null, 2)
+      );
+
       setErro(
         "Não foi possível enviar o pedido. Verifique a ligação e tente novamente."
       );
+
       setEnviando(false);
       return;
     }
@@ -49,6 +288,9 @@ export default function SolicitarServicoPage() {
     setEnviado(true);
     setEnviando(false);
     form.reset();
+
+    setProvinciaSelecionada("");
+    setMunicipioSelecionado("");
   }
 
   return (
@@ -92,6 +334,7 @@ export default function SolicitarServicoPage() {
                 </p>
 
                 <button
+                  type="button"
                   onClick={() => {
                     setEnviado(false);
                     setErro("");
@@ -153,6 +396,7 @@ export default function SolicitarServicoPage() {
 
                 {/* Localização */}
                 <div className="grid gap-6 md:grid-cols-2">
+                  {/* Província */}
                   <div>
                     <label
                       htmlFor="provincia"
@@ -161,16 +405,32 @@ export default function SolicitarServicoPage() {
                       Província
                     </label>
 
-                    <input
+                    <select
                       id="provincia"
                       name="provincia"
-                      type="text"
                       required
-                      placeholder="Ex.: Cabinda"
-                      className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
-                    />
+                      value={provinciaSelecionada}
+                      onChange={(event) => {
+                        setProvinciaSelecionada(event.target.value);
+                        setMunicipioSelecionado("");
+                      }}
+                      className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
+                    >
+                      <option value="" disabled>
+                        Selecione a província
+                      </option>
+
+                      {Object.keys(provinciasMunicipios)
+                        .sort((a, b) => a.localeCompare(b, "pt"))
+                        .map((provincia) => (
+                          <option key={provincia} value={provincia}>
+                            {provincia}
+                          </option>
+                        ))}
+                    </select>
                   </div>
 
+                  {/* Município */}
                   <div>
                     <label
                       htmlFor="municipio"
@@ -179,14 +439,31 @@ export default function SolicitarServicoPage() {
                       Município
                     </label>
 
-                    <input
+                    <select
                       id="municipio"
                       name="municipio"
-                      type="text"
                       required
-                      placeholder="Digite o município"
-                      className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
-                    />
+                      value={municipioSelecionado}
+                      onChange={(event) =>
+                        setMunicipioSelecionado(event.target.value)
+                      }
+                      disabled={!provinciaSelecionada}
+                      className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-gray-100"
+                    >
+                      <option value="" disabled>
+                        {provinciaSelecionada
+                          ? "Selecione o município"
+                          : "Selecione primeiro a província"}
+                      </option>
+
+                      {municipios
+                        .sort((a, b) => a.localeCompare(b, "pt"))
+                        .map((municipio) => (
+                          <option key={municipio} value={municipio}>
+                            {municipio}
+                          </option>
+                        ))}
+                    </select>
                   </div>
                 </div>
 
@@ -210,29 +487,11 @@ export default function SolicitarServicoPage() {
                       Selecione um serviço
                     </option>
 
-                    <option value="CCTV e Videovigilância">
-                      CCTV e Videovigilância
-                    </option>
-
-                    <option value="Instalações Elétricas">
-                      Instalações Elétricas
-                    </option>
-
-                    <option value="Cerca Elétrica">
-                      Cerca Elétrica
-                    </option>
-
-                    <option value="Videoporteiro">
-                      Videoporteiro
-                    </option>
-
-                    <option value="Manutenção Técnica">
-                      Manutenção Técnica
-                    </option>
-
-                    <option value="Segurança Eletrónica">
-                      Segurança Eletrónica
-                    </option>
+                    {servicos.map((servico) => (
+                      <option key={servico} value={servico}>
+                        {servico}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
@@ -268,7 +527,9 @@ export default function SolicitarServicoPage() {
                   disabled={enviando}
                   className="w-full rounded-lg bg-blue-700 px-6 py-4 font-semibold text-white transition hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  {enviando ? "A enviar pedido..." : "Enviar Pedido"}
+                  {enviando
+                    ? "A enviar pedido..."
+                    : "Enviar Pedido"}
                 </button>
 
                 <p className="text-center text-sm text-gray-500">
