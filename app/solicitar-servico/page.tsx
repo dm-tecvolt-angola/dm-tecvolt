@@ -4,7 +4,7 @@ import { FormEvent, useState } from "react";
 import { supabase } from "@/lib/supabase";
 
 const provinciasMunicipios: Record<string, string[]> = {
-  "Bengo": [
+  Bengo: [
     "Dembos",
     "Nambuangongo",
     "Pango Aluquém",
@@ -14,7 +14,7 @@ const provinciasMunicipios: Record<string, string[]> = {
     "Quibaxe",
   ],
 
-  "Benguela": [
+  Benguela: [
     "Benguela",
     "Lobito",
     "Baía Farta",
@@ -27,7 +27,7 @@ const provinciasMunicipios: Record<string, string[]> = {
     "Caimbambo",
   ],
 
-  "Bié": [
+  Bié: [
     "Cuito",
     "Andulo",
     "Camacupa",
@@ -38,7 +38,7 @@ const provinciasMunicipios: Record<string, string[]> = {
     "Nharea",
   ],
 
-  "Cabinda": [
+  Cabinda: [
     "Cabinda",
     "Cacongo",
     "Buco-Zau",
@@ -81,7 +81,7 @@ const provinciasMunicipios: Record<string, string[]> = {
     "Seles",
   ],
 
-  "Cunene": [
+  Cunene: [
     "Ondjiva",
     "Cahama",
     "Curoca",
@@ -90,7 +90,7 @@ const provinciasMunicipios: Record<string, string[]> = {
     "Ombadja",
   ],
 
-  "Huambo": [
+  Huambo: [
     "Huambo",
     "Bailundo",
     "Caála",
@@ -103,7 +103,7 @@ const provinciasMunicipios: Record<string, string[]> = {
     "Ucuma",
   ],
 
-  "Huíla": [
+  Huíla: [
     "Lubango",
     "Caconda",
     "Caluquembe",
@@ -124,7 +124,7 @@ const provinciasMunicipios: Record<string, string[]> = {
     "Mussulo",
   ],
 
-  "Luanda": [
+  Luanda: [
     "Luanda",
     "Belas",
     "Cacuaco",
@@ -155,7 +155,7 @@ const provinciasMunicipios: Record<string, string[]> = {
     "Quirima",
   ],
 
-  "Malanje": [
+  Malanje: [
     "Malanje",
     "Cacuso",
     "Calandula",
@@ -170,7 +170,7 @@ const provinciasMunicipios: Record<string, string[]> = {
     "Quirima",
   ],
 
-  "Moxico": [
+  Moxico: [
     "Luena",
     "Alto Cuito",
     "Bundas",
@@ -189,7 +189,7 @@ const provinciasMunicipios: Record<string, string[]> = {
     "Lago",
   ],
 
-  "Namibe": [
+  Namibe: [
     "Moçâmedes",
     "Bibala",
     "Camucuio",
@@ -197,7 +197,7 @@ const provinciasMunicipios: Record<string, string[]> = {
     "Virei",
   ],
 
-  "Uíge": [
+  Uíge: [
     "Uíge",
     "Alto Cauale",
     "Ambuila",
@@ -213,7 +213,7 @@ const provinciasMunicipios: Record<string, string[]> = {
     "Songo",
   ],
 
-  "Zaire": [
+  Zaire: [
     "Mbanza Kongo",
     "Cuimba",
     "Nóqui",
@@ -240,6 +240,15 @@ export default function SolicitarServicoPage() {
   const [provinciaSelecionada, setProvinciaSelecionada] = useState("");
   const [municipioSelecionado, setMunicipioSelecionado] = useState("");
 
+  const [dadosPedido, setDadosPedido] = useState({
+    nome: "",
+    telefone: "",
+    provincia: "",
+    municipio: "",
+    servico: "",
+    descricao: "",
+  });
+
   const municipios =
     provinciaSelecionada !== ""
       ? provinciasMunicipios[provinciaSelecionada] || []
@@ -260,6 +269,15 @@ export default function SolicitarServicoPage() {
     const municipio = String(dados.get("municipio") || "").trim();
     const servico = String(dados.get("servico") || "").trim();
     const descricao = String(dados.get("descricao") || "").trim();
+
+    const pedido = {
+      nome,
+      telefone,
+      provincia,
+      municipio,
+      servico,
+      descricao,
+    };
 
     const { error } = await supabase.from("clientes").insert({
       nome,
@@ -285,12 +303,41 @@ export default function SolicitarServicoPage() {
       return;
     }
 
+    setDadosPedido(pedido);
+
     setEnviado(true);
     setEnviando(false);
+
     form.reset();
 
     setProvinciaSelecionada("");
     setMunicipioSelecionado("");
+  }
+
+  function abrirWhatsApp() {
+    const numeroDMTECVOLT = "244949450344";
+
+    const mensagem = `Olá, DM-TECVOLT!
+
+Acabei de enviar um pedido de serviço através do vosso site.
+
+Nome: ${dadosPedido.nome}
+Telefone/WhatsApp: ${dadosPedido.telefone}
+Província: ${dadosPedido.provincia}
+Município: ${dadosPedido.municipio}
+Serviço: ${dadosPedido.servico}
+
+Descrição:
+${dadosPedido.descricao}
+
+Gostaria de confirmar o envio do meu pedido.`;
+
+    const mensagemCodificada = encodeURIComponent(mensagem);
+
+    window.open(
+      `https://wa.me/${numeroDMTECVOLT}?text=${mensagemCodificada}`,
+      "_blank"
+    );
   }
 
   return (
@@ -319,7 +366,7 @@ export default function SolicitarServicoPage() {
           <div className="rounded-2xl bg-white p-8 shadow-lg md:p-10">
             {enviado ? (
               <div className="py-12 text-center">
-                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100 text-3xl text-green-700">
+                <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-green-100 text-4xl text-green-700">
                   ✓
                 </div>
 
@@ -328,18 +375,66 @@ export default function SolicitarServicoPage() {
                 </h2>
 
                 <p className="mx-auto mt-4 max-w-xl leading-7 text-gray-600">
-                  Obrigado pelo contacto. O seu pedido foi enviado com
-                  sucesso para a DM-TECVOLT. Entraremos em contacto consigo
-                  em breve.
+                  O seu pedido foi enviado com sucesso para a
+                  <strong> DM-TECVOLT</strong>.
                 </p>
+
+                <div className="mx-auto mt-8 max-w-xl rounded-xl border border-gray-200 bg-gray-50 p-6 text-left">
+                  <h3 className="mb-4 text-lg font-bold text-gray-900">
+                    Resumo do pedido
+                  </h3>
+
+                  <div className="space-y-2 text-sm text-gray-700">
+                    <p>
+                      <strong>Nome:</strong> {dadosPedido.nome}
+                    </p>
+
+                    <p>
+                      <strong>Telefone:</strong> {dadosPedido.telefone}
+                    </p>
+
+                    <p>
+                      <strong>Localização:</strong>{" "}
+                      {dadosPedido.municipio}, {dadosPedido.provincia}
+                    </p>
+
+                    <p>
+                      <strong>Serviço:</strong> {dadosPedido.servico}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-8">
+                  <p className="mb-4 text-sm text-gray-500">
+                    Para agilizar o atendimento, envie também a confirmação
+                    pelo WhatsApp.
+                  </p>
+
+                  <button
+                    type="button"
+                    onClick={abrirWhatsApp}
+                    className="inline-flex items-center justify-center gap-3 rounded-lg bg-green-600 px-7 py-4 font-semibold text-white shadow-md transition hover:bg-green-700 hover:shadow-lg"
+                  >
+                    <span className="text-xl">💬</span>
+                    Confirmar pelo WhatsApp
+                  </button>
+                </div>
 
                 <button
                   type="button"
                   onClick={() => {
                     setEnviado(false);
                     setErro("");
+                    setDadosPedido({
+                      nome: "",
+                      telefone: "",
+                      provincia: "",
+                      municipio: "",
+                      servico: "",
+                      descricao: "",
+                    });
                   }}
-                  className="mt-8 rounded-lg bg-blue-700 px-6 py-3 font-semibold text-white hover:bg-blue-600"
+                  className="mt-6 block w-full text-center text-sm font-medium text-blue-700 hover:underline"
                 >
                   Enviar outro pedido
                 </button>
@@ -514,7 +609,7 @@ export default function SolicitarServicoPage() {
                   />
                 </div>
 
-                {/* Mensagem de erro */}
+                {/* Erro */}
                 {erro && (
                   <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
                     {erro}
