@@ -2,235 +2,16 @@
 
 import { FormEvent, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { provincias, municipiosPorProvincia } from "@/data/angola";
 
-const provinciasMunicipios: Record<string, string[]> = {
-  Bengo: [
-    "Dembos",
-    "Nambuangongo",
-    "Pango Aluquém",
-    "Ambriz",
-    "Dande",
-    "Bula Atumba",
-    "Quibaxe",
-  ],
-
-  Benguela: [
-    "Benguela",
-    "Lobito",
-    "Baía Farta",
-    "Catumbela",
-    "Chongoroi",
-    "Cubal",
-    "Ganda",
-    "Balombo",
-    "Bocoio",
-    "Caimbambo",
-  ],
-
-  Bié: [
-    "Cuito",
-    "Andulo",
-    "Camacupa",
-    "Catabola",
-    "Chitembo",
-    "Cuemba",
-    "Cunhinga",
-    "Nharea",
-  ],
-
-  Cabinda: [
-    "Cabinda",
-    "Cacongo",
-    "Buco-Zau",
-    "Belize",
-  ],
-
-  "Cuando Cubango": [
-    "Menongue",
-    "Cuchi",
-    "Cuito Cuanavale",
-    "Dirico",
-    "Mavinga",
-    "Nancova",
-    "Rivungo",
-  ],
-
-  "Cuanza Norte": [
-    "Cazengo",
-    "Ambaca",
-    "Banga",
-    "Bolongongo",
-    "Cambambe",
-    "Golungo Alto",
-    "Lucala",
-    "Quiculungo",
-    "Samba Cajú",
-  ],
-
-  "Cuanza Sul": [
-    "Sumbe",
-    "Amboim",
-    "Cassongue",
-    "Conda",
-    "Ebo",
-    "Libolo",
-    "Mussende",
-    "Porto Amboim",
-    "Quibala",
-    "Quilenda",
-    "Seles",
-  ],
-
-  Cunene: [
-    "Ondjiva",
-    "Cahama",
-    "Curoca",
-    "Cuvelai",
-    "Namacunde",
-    "Ombadja",
-  ],
-
-  Huambo: [
-    "Huambo",
-    "Bailundo",
-    "Caála",
-    "Catchiungo",
-    "Ecunha",
-    "Longonjo",
-    "Londuimbali",
-    "Mungo",
-    "Tchicala-Tcholoanga",
-    "Ucuma",
-  ],
-
-  Huíla: [
-    "Lubango",
-    "Caconda",
-    "Caluquembe",
-    "Chibia",
-    "Chicomba",
-    "Chipindo",
-    "Cuvango",
-    "Humpata",
-    "Jamba",
-    "Matala",
-    "Quilengues",
-    "Quipungo",
-  ],
-
-  "Icolo e Bengo": [
-    "Catete",
-    "Quiçama",
-    "Mussulo",
-  ],
-
-  Luanda: [
-    "Luanda",
-    "Belas",
-    "Cacuaco",
-    "Cazenga",
-    "Kilamba Kiaxi",
-    "Talatona",
-    "Viana",
-  ],
-
-  "Lunda Norte": [
-    "Dundo",
-    "Cambulo",
-    "Capenda Camulemba",
-    "Caungula",
-    "Chitato",
-    "Cuango",
-    "Cuílo",
-    "Lubalo",
-    "Lucapa",
-    "Xá-Muteba",
-  ],
-
-  "Lunda Sul": [
-    "Saurimo",
-    "Cacolo",
-    "Dala",
-    "Muconda",
-    "Quirima",
-  ],
-
-  Malanje: [
-    "Malanje",
-    "Cacuso",
-    "Calandula",
-    "Cambundi-Catembo",
-    "Cangandala",
-    "Caombo",
-    "Kiwaba Nzoji",
-    "Luquembo",
-    "Massango",
-    "Mucari",
-    "Quela",
-    "Quirima",
-  ],
-
-  Moxico: [
-    "Luena",
-    "Alto Cuito",
-    "Bundas",
-    "Camanongue",
-    "Cameia",
-    "Léua",
-    "Luau",
-    "Luacano",
-    "Luchazes",
-  ],
-
-  "Moxico Leste": [
-    "Cazombo",
-    "Macondo",
-    "Luacano",
-    "Lago",
-  ],
-
-  Namibe: [
-    "Moçâmedes",
-    "Bibala",
-    "Camucuio",
-    "Tômbwa",
-    "Virei",
-  ],
-
-  Uíge: [
-    "Uíge",
-    "Alto Cauale",
-    "Ambuila",
-    "Bembe",
-    "Buengas",
-    "Damba",
-    "Maquela do Zombo",
-    "Mucaba",
-    "Negage",
-    "Puri",
-    "Quimbele",
-    "Quitexe",
-    "Songo",
-  ],
-
-  Zaire: [
-    "Mbanza Kongo",
-    "Cuimba",
-    "Nóqui",
-    "Nzeto",
-    "Soyo",
-    "Tomboco",
-  ],
+type Pedido = {
+  nome: string;
+  telefone: string;
+  provincia: string;
+  municipio: string;
+  servico: string;
+  descricao: string;
 };
-
-const servicos = [
-  "CCTV e Videovigilância",
-  "Instalações Elétricas",
-  "Cerca Elétrica",
-  "Videoporteiro",
-  "Manutenção Técnica",
-  "Segurança Eletrónica",
-];
 
 export default function SolicitarServicoPage() {
   const [enviando, setEnviando] = useState(false);
@@ -240,19 +21,7 @@ export default function SolicitarServicoPage() {
   const [provinciaSelecionada, setProvinciaSelecionada] = useState("");
   const [municipioSelecionado, setMunicipioSelecionado] = useState("");
 
-  const [dadosPedido, setDadosPedido] = useState({
-    nome: "",
-    telefone: "",
-    provincia: "",
-    municipio: "",
-    servico: "",
-    descricao: "",
-  });
-
-  const municipios =
-    provinciaSelecionada !== ""
-      ? provinciasMunicipios[provinciaSelecionada] || []
-      : [];
+  const [pedido, setPedido] = useState<Pedido | null>(null);
 
   async function enviarPedido(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -270,24 +39,17 @@ export default function SolicitarServicoPage() {
     const servico = String(dados.get("servico") || "").trim();
     const descricao = String(dados.get("descricao") || "").trim();
 
-    const pedido = {
-      nome,
-      telefone,
-      provincia,
-      municipio,
-      servico,
-      descricao,
-    };
-
-    const { error } = await supabase.from("clientes").insert({
-      nome,
-      telefone,
-      provincia,
-      municipio,
-      servico,
-      descricao,
-      estado: "pendente",
-    });
+   const { error } = await supabase
+  .from("clientes")
+  .insert({
+    nome,
+    telefone,
+    provincia,
+    municipio,
+    servico,
+    descricao,
+    estado: "pendente",
+  });
 
     if (error) {
       console.error(
@@ -303,8 +65,16 @@ export default function SolicitarServicoPage() {
       return;
     }
 
-    setDadosPedido(pedido);
+    const novoPedido: Pedido = {
+      nome,
+      telefone,
+      provincia,
+      municipio,
+      servico,
+      descricao,
+    };
 
+    setPedido(novoPedido);
     setEnviado(true);
     setEnviando(false);
 
@@ -312,39 +82,124 @@ export default function SolicitarServicoPage() {
 
     setProvinciaSelecionada("");
     setMunicipioSelecionado("");
+
+    /*
+     * Número do pedido criado no Supabase.
+     */
+   const numeroPedido = "Pedido recebido";
+    /*
+     * Limpar o número do cliente.
+     */
+    let numeroWhatsApp = telefone.replace(/\D/g, "");
+
+    /*
+     * Se o cliente escrever 9XXXXXXXX,
+     * acrescentamos o código de Angola.
+     */
+    if (numeroWhatsApp.startsWith("9")) {
+      numeroWhatsApp = "244" + numeroWhatsApp;
+    }
+
+    /*
+     * Se escrever 09XXXXXXXX,
+     * retiramos o zero e acrescentamos +244.
+     */
+    if (numeroWhatsApp.startsWith("0")) {
+      numeroWhatsApp = "244" + numeroWhatsApp.substring(1);
+    }
+
+    /*
+     * Caso ainda não tenha o código 244.
+     */
+    if (!numeroWhatsApp.startsWith("244")) {
+      numeroWhatsApp = "244" + numeroWhatsApp;
+    }
+
+    /*
+     * Mensagem que será aberta no WhatsApp.
+     */
+    const mensagem = encodeURIComponent(
+      `Olá, ${nome}! 👋
+
+A DM-TECVOLT confirma que recebeu o seu pedido de serviço.
+
+📋 Número do pedido: ${numeroPedido}
+
+🔧 Serviço: ${servico}
+
+📍 Localização:
+Província: ${provincia}
+Município: ${municipio}
+
+📝 Descrição:
+${descricao}
+
+📌 Estado: PENDENTE
+
+A nossa equipa irá analisar o seu pedido e entrará em contacto consigo em breve.
+
+Obrigado por escolher a DM-TECVOLT.`
+    );
+
+    const urlWhatsApp = `https://wa.me/${numeroWhatsApp}?text=${mensagem}`;
+
+    /*
+     * Abre automaticamente o WhatsApp.
+     */
+    window.open(urlWhatsApp, "_blank");
   }
 
-  function abrirWhatsApp() {
-    const numeroDMTECVOLT = "244949450344";
+  function abrirWhatsAppNovamente() {
+    if (!pedido) return;
 
-    const mensagem = `Olá, DM-TECVOLT!
+    let numeroWhatsApp = pedido.telefone.replace(/\D/g, "");
 
-Acabei de enviar um pedido de serviço através do vosso site.
+    if (numeroWhatsApp.startsWith("9")) {
+      numeroWhatsApp = "244" + numeroWhatsApp;
+    }
 
-Nome: ${dadosPedido.nome}
-Telefone/WhatsApp: ${dadosPedido.telefone}
-Província: ${dadosPedido.provincia}
-Município: ${dadosPedido.municipio}
-Serviço: ${dadosPedido.servico}
+    if (numeroWhatsApp.startsWith("0")) {
+      numeroWhatsApp = "244" + numeroWhatsApp.substring(1);
+    }
 
-Descrição:
-${dadosPedido.descricao}
+    if (!numeroWhatsApp.startsWith("244")) {
+      numeroWhatsApp = "244" + numeroWhatsApp;
+    }
 
-Gostaria de confirmar o envio do meu pedido.`;
+    const mensagem = encodeURIComponent(
+      `Olá, ${pedido.nome}! 👋
 
-    const mensagemCodificada = encodeURIComponent(mensagem);
+A DM-TECVOLT confirma que recebeu o seu pedido de serviço.
+
+🔧 Serviço: ${pedido.servico}
+
+📍 Localização:
+Província: ${pedido.provincia}
+Município: ${pedido.municipio}
+
+📝 Descrição:
+${pedido.descricao}
+
+📌 Estado: PENDENTE
+
+A nossa equipa irá analisar o seu pedido e entrará em contacto consigo em breve.
+
+Obrigado por escolher a DM-TECVOLT.`
+    );
 
     window.open(
-      `https://wa.me/${numeroDMTECVOLT}?text=${mensagemCodificada}`,
+      `https://wa.me/${numeroWhatsApp}?text=${mensagem}`,
       "_blank"
     );
   }
 
   return (
     <main className="min-h-screen bg-gray-50 text-gray-900">
+
       {/* Cabeçalho */}
       <section className="bg-blue-700 py-20 text-white">
         <div className="mx-auto max-w-7xl px-6">
+
           <p className="font-semibold text-blue-200">
             Solicitação de serviço
           </p>
@@ -357,16 +212,23 @@ Gostaria de confirmar o envio do meu pedido.`;
             Preencha o formulário abaixo com os detalhes do seu projeto.
             Entraremos em contacto para analisar a sua necessidade.
           </p>
+
         </div>
       </section>
 
       {/* Formulário */}
       <section className="py-16">
+
         <div className="mx-auto max-w-4xl px-6">
+
           <div className="rounded-2xl bg-white p-8 shadow-lg md:p-10">
+
             {enviado ? (
+
+              /* CONFIRMAÇÃO */
               <div className="py-12 text-center">
-                <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-green-100 text-4xl text-green-700">
+
+                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100 text-3xl text-green-700">
                   ✓
                 </div>
 
@@ -375,73 +237,56 @@ Gostaria de confirmar o envio do meu pedido.`;
                 </h2>
 
                 <p className="mx-auto mt-4 max-w-xl leading-7 text-gray-600">
-                  O seu pedido foi enviado com sucesso para a
-                  <strong> DM-TECVOLT</strong>.
+                  Obrigado pelo contacto. O seu pedido foi enviado com
+                  sucesso para a DM-TECVOLT.
                 </p>
 
-                <div className="mx-auto mt-8 max-w-xl rounded-xl border border-gray-200 bg-gray-50 p-6 text-left">
-                  <h3 className="mb-4 text-lg font-bold text-gray-900">
-                    Resumo do pedido
-                  </h3>
+                <div className="mx-auto mt-8 max-w-xl rounded-xl border border-green-200 bg-green-50 p-5 text-left">
 
-                  <div className="space-y-2 text-sm text-gray-700">
-                    <p>
-                      <strong>Nome:</strong> {dadosPedido.nome}
-                    </p>
-
-                    <p>
-                      <strong>Telefone:</strong> {dadosPedido.telefone}
-                    </p>
-
-                    <p>
-                      <strong>Localização:</strong>{" "}
-                      {dadosPedido.municipio}, {dadosPedido.provincia}
-                    </p>
-
-                    <p>
-                      <strong>Serviço:</strong> {dadosPedido.servico}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="mt-8">
-                  <p className="mb-4 text-sm text-gray-500">
-                    Para agilizar o atendimento, envie também a confirmação
-                    pelo WhatsApp.
+                  <p className="font-semibold text-green-800">
+                    💬 Confirmação pelo WhatsApp
                   </p>
 
-                  <button
-                    type="button"
-                    onClick={abrirWhatsApp}
-                    className="inline-flex items-center justify-center gap-3 rounded-lg bg-green-600 px-7 py-4 font-semibold text-white shadow-md transition hover:bg-green-700 hover:shadow-lg"
-                  >
-                    <span className="text-xl">💬</span>
-                    Confirmar pelo WhatsApp
-                  </button>
+                  <p className="mt-2 text-sm leading-6 text-green-700">
+                    Abrimos o WhatsApp com uma mensagem de confirmação
+                    preparada para si.
+                  </p>
+
+                  <p className="mt-2 text-sm font-medium text-green-700">
+                    Basta verificar a mensagem e clicar em Enviar.
+                  </p>
+
                 </div>
+
+                <button
+                  type="button"
+                  onClick={abrirWhatsAppNovamente}
+                  className="mt-6 w-full rounded-lg bg-green-600 px-6 py-4 font-semibold text-white transition hover:bg-green-500"
+                >
+                  💬 Abrir confirmação no WhatsApp
+                </button>
 
                 <button
                   type="button"
                   onClick={() => {
                     setEnviado(false);
                     setErro("");
-                    setDadosPedido({
-                      nome: "",
-                      telefone: "",
-                      provincia: "",
-                      municipio: "",
-                      servico: "",
-                      descricao: "",
-                    });
+                    setPedido(null);
                   }}
-                  className="mt-6 block w-full text-center text-sm font-medium text-blue-700 hover:underline"
+                  className="mt-4 rounded-lg bg-blue-700 px-6 py-3 font-semibold text-white hover:bg-blue-600"
                 >
                   Enviar outro pedido
                 </button>
+
               </div>
+
             ) : (
+
+              /* FORMULÁRIO */
               <form onSubmit={enviarPedido} className="space-y-6">
+
                 <div>
+
                   <h2 className="text-2xl font-bold">
                     Dados do cliente
                   </h2>
@@ -449,10 +294,12 @@ Gostaria de confirmar o envio do meu pedido.`;
                   <p className="mt-2 text-gray-600">
                     Preencha os seus dados para podermos entrar em contacto.
                   </p>
+
                 </div>
 
                 {/* Nome */}
                 <div>
+
                   <label
                     htmlFor="nome"
                     className="mb-2 block font-medium"
@@ -468,10 +315,12 @@ Gostaria de confirmar o envio do meu pedido.`;
                     placeholder="Digite o seu nome completo"
                     className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
                   />
+
                 </div>
 
                 {/* Telefone */}
                 <div>
+
                   <label
                     htmlFor="telefone"
                     className="mb-2 block font-medium"
@@ -487,12 +336,19 @@ Gostaria de confirmar o envio do meu pedido.`;
                     placeholder="Ex.: +244 9XX XXX XXX"
                     className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
                   />
+
+                  <p className="mt-2 text-sm text-gray-500">
+                    Este número será utilizado para abrir a confirmação no WhatsApp.
+                  </p>
+
                 </div>
 
                 {/* Localização */}
                 <div className="grid gap-6 md:grid-cols-2">
+
                   {/* Província */}
                   <div>
+
                     <label
                       htmlFor="provincia"
                       className="mb-2 block font-medium"
@@ -505,28 +361,33 @@ Gostaria de confirmar o envio do meu pedido.`;
                       name="provincia"
                       required
                       value={provinciaSelecionada}
-                      onChange={(event) => {
-                        setProvinciaSelecionada(event.target.value);
+                      onChange={(e) => {
+                        setProvinciaSelecionada(e.target.value);
                         setMunicipioSelecionado("");
                       }}
                       className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
                     >
+
                       <option value="" disabled>
                         Selecione a província
                       </option>
 
-                      {Object.keys(provinciasMunicipios)
-                        .sort((a, b) => a.localeCompare(b, "pt"))
-                        .map((provincia) => (
-                          <option key={provincia} value={provincia}>
-                            {provincia}
-                          </option>
-                        ))}
+                      {provincias.map((provincia) => (
+                        <option
+                          key={provincia}
+                          value={provincia}
+                        >
+                          {provincia}
+                        </option>
+                      ))}
+
                     </select>
+
                   </div>
 
                   {/* Município */}
                   <div>
+
                     <label
                       htmlFor="municipio"
                       className="mb-2 block font-medium"
@@ -539,31 +400,40 @@ Gostaria de confirmar o envio do meu pedido.`;
                       name="municipio"
                       required
                       value={municipioSelecionado}
-                      onChange={(event) =>
-                        setMunicipioSelecionado(event.target.value)
+                      onChange={(e) =>
+                        setMunicipioSelecionado(e.target.value)
                       }
                       disabled={!provinciaSelecionada}
                       className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-gray-100"
                     >
+
                       <option value="" disabled>
                         {provinciaSelecionada
                           ? "Selecione o município"
                           : "Selecione primeiro a província"}
                       </option>
 
-                      {municipios
-                        .sort((a, b) => a.localeCompare(b, "pt"))
-                        .map((municipio) => (
-                          <option key={municipio} value={municipio}>
+                      {provinciaSelecionada &&
+                        municipiosPorProvincia[
+                          provinciaSelecionada as keyof typeof municipiosPorProvincia
+                        ]?.map((municipio: string) => (
+                          <option
+                            key={municipio}
+                            value={municipio}
+                          >
                             {municipio}
                           </option>
                         ))}
+
                     </select>
+
                   </div>
+
                 </div>
 
                 {/* Serviço */}
                 <div>
+
                   <label
                     htmlFor="servico"
                     className="mb-2 block font-medium"
@@ -578,20 +448,42 @@ Gostaria de confirmar o envio do meu pedido.`;
                     defaultValue=""
                     className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
                   >
+
                     <option value="" disabled>
                       Selecione um serviço
                     </option>
 
-                    {servicos.map((servico) => (
-                      <option key={servico} value={servico}>
-                        {servico}
-                      </option>
-                    ))}
+                    <option value="CCTV e Videovigilância">
+                      CCTV e Videovigilância
+                    </option>
+
+                    <option value="Instalações Elétricas">
+                      Instalações Elétricas
+                    </option>
+
+                    <option value="Cerca Elétrica">
+                      Cerca Elétrica
+                    </option>
+
+                    <option value="Videoporteiro">
+                      Videoporteiro
+                    </option>
+
+                    <option value="Manutenção Técnica">
+                      Manutenção Técnica
+                    </option>
+
+                    <option value="Segurança Eletrónica">
+                      Segurança Eletrónica
+                    </option>
+
                   </select>
+
                 </div>
 
                 {/* Descrição */}
                 <div>
+
                   <label
                     htmlFor="descricao"
                     className="mb-2 block font-medium"
@@ -607,9 +499,10 @@ Gostaria de confirmar o envio do meu pedido.`;
                     placeholder="Descreva o trabalho que pretende realizar..."
                     className="w-full resize-none rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
                   />
+
                 </div>
 
-                {/* Erro */}
+                {/* Mensagem de erro */}
                 {erro && (
                   <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
                     {erro}
@@ -631,11 +524,16 @@ Gostaria de confirmar o envio do meu pedido.`;
                   Os seus dados serão utilizados apenas para responder à sua
                   solicitação.
                 </p>
+
               </form>
             )}
+
           </div>
+
         </div>
+
       </section>
+
     </main>
   );
 }
