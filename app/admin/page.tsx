@@ -62,37 +62,79 @@ export default function AdminPage() {
   }
 
   async function alterarEstado(id: number, novoEstado: string) {
-    setErro("");
+  setErro("");
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-    if (!user) {
-      router.replace("/login");
-      return;
-    }
+  if (!user) {
+    router.replace("/login");
+    return;
+  }
 
-    const { error } = await supabase
-      .from("clientes")
-      .update({ estado: novoEstado })
-      .eq("id", id);
+  const cliente = clientes.find((item) => item.id === id);
 
-    if (error) {
-      console.error("Erro ao alterar estado:", error);
-      setErro("Não foi possível alterar o estado do pedido.");
-      return;
-    }
+  if (!cliente) {
+    setErro("Pedido não encontrado.");
+    return;
+  }
 
-    setClientes((pedidosAtuais) =>
-      pedidosAtuais.map((cliente) =>
-        cliente.id === id
-          ? { ...cliente, estado: novoEstado }
-          : cliente
-      )
+  const estadoAnterior = cliente.estado || "Pendente";
+
+  if (estadoAnterior === novoEstado) {
+    return;
+  }
+
+  // Atualizar o estado do pedido
+  const { error: erroAtualizacao } = await supabase
+    .from("clientes")
+    .update({ estado: novoEstado })
+    .eq("id", id);
+
+  if (erroAtualizacao) {
+    console.error(
+      "Erro ao alterar estado:",
+      erroAtualizacao
+    );
+
+    setErro("Não foi possível alterar o estado do pedido.");
+    return;
+  }
+
+  // Guardar alteração no histórico
+  const { error: erroHistorico } = await supabase
+    .from("historico_pedidos")
+    .insert({
+      cliente_id: id,
+      estado_anterior: estadoAnterior,
+      estado_novo: novoEstado,
+      administrador_id: user.id,
+    });
+
+  if (erroHistorico) {
+    console.error(
+      "Erro ao guardar histórico:",
+      erroHistorico
+    );
+
+    setErro(
+      "O estado foi atualizado, mas não foi possível guardar o histórico."
     );
   }
 
+  // Atualizar a lista apresentada no painel
+  setClientes((pedidosAtuais) =>
+    pedidosAtuais.map((clienteAtual) =>
+      clienteAtual.id === id
+        ? {
+            ...clienteAtual,
+            estado: novoEstado,
+          }
+        : clienteAtual
+    )
+  );
+}
   function enviarAtualizacaoWhatsApp(cliente: Cliente) {
     let numero = cliente.telefone.replace(/\D/g, "");
 
