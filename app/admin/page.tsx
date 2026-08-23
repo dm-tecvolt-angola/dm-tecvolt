@@ -25,6 +25,7 @@ export default function AdminPage() {
   const [erro, setErro] = useState("");
   const [pesquisa, setPesquisa] = useState("");
   const [filtroEstado, setFiltroEstado] = useState("Todos");
+  const [novoPedidoAviso, setNovoPedidoAviso] = useState(false);
 
   async function terminarSessao() {
     await supabase.auth.signOut();
@@ -169,9 +170,45 @@ Caso tenha alguma dúvida, estamos à disposição.`
     window.open(url, "_blank", "noopener,noreferrer");
   }
 
-  useEffect(() => {
-    carregarPedidos();
-  }, []);
+ useEffect(() => {
+  carregarPedidos();
+
+  const canal = supabase
+    .channel("novos-pedidos-admin")
+    .on(
+      "postgres_changes",
+      {
+        event: "INSERT",
+        schema: "public",
+        table: "clientes",
+      },
+      (payload) => {
+        const novoPedido = payload.new as Cliente;
+        setNovoPedidoAviso(true);
+
+setTimeout(() => {
+  setNovoPedidoAviso(false);
+}, 5000);
+
+        setClientes((pedidosAtuais) => {
+          const jaExiste = pedidosAtuais.some(
+            (cliente) => cliente.id === novoPedido.id
+          );
+
+          if (jaExiste) {
+            return pedidosAtuais;
+          }
+
+          return [novoPedido, ...pedidosAtuais];
+        });
+      }
+    )
+    .subscribe();
+
+  return () => {
+    supabase.removeChannel(canal);
+  };
+}, []);
 
   function formatarData(data: string) {
     return new Date(data).toLocaleString("pt-PT", {
@@ -220,6 +257,17 @@ Caso tenha alguma dúvida, estamos à disposição.`
 
   return (
     <main className="min-h-screen bg-gray-50 text-gray-900">
+      {novoPedidoAviso && (
+  <div className="fixed right-6 top-6 z-50 rounded-xl bg-green-600 px-6 py-4 text-white shadow-xl">
+    <div className="font-bold">
+      🔔 Novo pedido recebido!
+    </div>
+
+    <div className="mt-1 text-sm text-green-100">
+      Um novo pedido foi adicionado ao painel.
+    </div>
+  </div>
+)}
       {/* CABEÇALHO */}
       <section className="bg-blue-700 py-12 text-white">
         <div className="mx-auto max-w-7xl px-6">
